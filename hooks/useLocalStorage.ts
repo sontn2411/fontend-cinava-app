@@ -1,22 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 /**
  * Persist state in localStorage with SSR safety.
+ * Uses lazy initializer to avoid setState-in-effect warnings (React 19).
  */
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
 ): [T, (value: T | ((prev: T) => T)) => void] {
-  const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === "undefined") return initialValue;
 
-  useEffect(() => {
     try {
       const item = window.localStorage.getItem(key);
-      if (item) setStoredValue(JSON.parse(item));
+      return item ? (JSON.parse(item) as T) : initialValue;
     } catch {
-      // localStorage unavailable or parse error
+      return initialValue;
     }
-  }, [key]);
+  });
 
   const setValue = useCallback(
     (value: T | ((prev: T) => T)) => {
