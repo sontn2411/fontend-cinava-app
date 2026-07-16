@@ -1,47 +1,56 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
+import BannerHero from "@/components/home/bannerHero";
+import { homeService } from "@/lib/api/home.api";
+import type { ItemFlim, SectionItemFlim } from "@/types/api.types";
+import { SectionFlim } from "@/components/home/sectionFlim";
 
-export const metadata: Metadata = {
-  title: `${APP_NAME} - ${APP_DESCRIPTION}`,
-  description: APP_DESCRIPTION,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const data = await homeService.getData();
+    const seo = data?.seoOnPage;
 
-export default function HomePage() {
+    if (seo) {
+      return {
+        title: seo.titleHead ? `${seo.titleHead} | ${APP_NAME}` : APP_NAME,
+        description: seo.descriptionHead || APP_DESCRIPTION,
+        openGraph: seo.og_image ? { images: [seo.og_image] } : undefined,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to fetch SEO data:", error);
+  }
+
+  return {
+    title: `${APP_NAME} - ${APP_DESCRIPTION}`,
+    description: APP_DESCRIPTION,
+  };
+}
+
+export default async function HomePage() {
+  let items: ItemFlim[] = [];
+  let listMovie: SectionItemFlim[] = [];
+  try {
+    const [data, dataListMovie] = await Promise.all([
+      homeService.getUpdate(),
+      homeService.getListMovie(),
+    ]);
+    items = data?.items || [];
+    listMovie = dataListMovie || [];
+  } catch (err) {
+    console.error('[HomePage] homeService.getData() FAILED:', err);
+  }
+
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="flex h-[60vh] min-h-[400px] items-center justify-center bg-gradient-to-b from-zinc-900 to-black">
-        <div className="text-center">
-          <h1 className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-5xl font-bold text-transparent">
-            {APP_NAME}
-          </h1>
-          <p className="mt-4 text-lg text-zinc-400">{APP_DESCRIPTION}</p>
-        </div>
-      </section>
+    <div className="min-h-screen w-full space-y-16">
+      <Suspense fallback={<div style={{ height: '500px' }} className="w-full bg-background-secondary animate-pulse" />}>
+        <BannerHero items={items} />
+      </Suspense>
 
-      {/* Content Sections - sẽ thêm MovieCarousel khi có API */}
-      <div className="mx-auto max-w-7xl space-y-12 px-4 py-12">
-        <section>
-          <h2 className="text-lg font-semibold text-white">Thịnh hành</h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Kết nối API để hiển thị phim thịnh hành
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-white">Phim mới cập nhật</h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Kết nối API để hiển thị phim mới
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-white">Phim bộ đang chiếu</h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Kết nối API để hiển thị phim bộ
-          </p>
-        </section>
-      </div>
+      {listMovie.map(item => (
+        <SectionFlim key={item.id} {...item} />
+      ))}
     </div>
   );
 }

@@ -9,8 +9,8 @@ export default function MainLayout({
   return (
     <>
       <Navbar />
-      <main className="flex-1">{children}</main>
-      <Footer />
+      <main className="flex-1 max-w-7xl mx-auto mt-16 w-full">{children}</main>
+      {/* <Footer /> */}
     </>
   );
 }

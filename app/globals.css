@@ -1,19 +1,74 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
+  /* Background Colors */
+  --background: #07080C;
+  --background-secondary: #0E121A;
+  --background-card: #161B24;
+  --background-hover: #1D2430;
+  
   --foreground: #fafafa;
+  --border: rgba(255, 255, 255, 0.08);
+
+  /* Primary Colors */
+  --primary: #7C5CFF;
+  --primary-hover: #9272FF;
+  --primary-pressed: #5D3FFF;
+
+  /* Accent Colors */
+  --accent-blue: #42A5FF;
+  --accent-orange: #FF9F43;
+  --accent-green: #37D67A;
+  --accent-red: #FF4D67;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-card: var(--background-card);
+  --color-background-hover: var(--background-hover);
+  
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-border: var(--border);
+  
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-pressed: var(--primary-pressed);
+  
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-green: var(--accent-green);
+  --color-accent-red: var(--accent-red);
+
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+
+  --radius-card: 18px;
+  --radius-button: 14px;
+  --radius-poster: 16px;
+  --radius-input: 14px;
+  --radius-modal: 24px;
+
+  --shadow-default: 0 20px 40px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 32px 64px rgba(0, 0, 0, 0.45);
+}
+
+@utility glass {
+  /* background: rgba(255, 255, 255, 0.01); */
+  backdrop-filter: blur(24px);
+  /* border: 1px solid rgba(255, 255, 255, 0.08); */
+}
+
+@utility bg-gradient-hero {
+  background: linear-gradient(135deg, #07080C, #101728, #1A1433);
+}
+
+@utility bg-gradient-primary {
+  background: linear-gradient(135deg, #7C5CFF, #5B8CFF);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }

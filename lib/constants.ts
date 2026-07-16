@@ -2,7 +2,7 @@ export const APP_NAME = "Cinava";
 export const APP_DESCRIPTION = "Xem phim trực tuyến chất lượng cao";
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export const ROUTES = {
   HOME: "/",
@@ -23,6 +23,7 @@ export const QUERY_KEYS = {
   LATEST: "latest",
   GENRES: "genres",
   SEARCH: "search",
+  SETTING: "setting",
 } as const;
 
 export const PAGINATION = {
