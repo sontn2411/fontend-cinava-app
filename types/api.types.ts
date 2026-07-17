@@ -70,3 +70,91 @@ export interface SectionItemFlim {
 	items: ItemFlim[];
 	slug?: string;
 }
+
+export interface ParamsType {
+	page?: number;
+	limit?: number;
+	category?: string;
+	country?: string;
+	year?: string;
+	sort_field?: string;
+	sort_type?: string;
+	sort_lang?: string;
+}
+
+export interface EpisodeServerData {
+	name: string;
+	slug: string;
+	filename: string;
+	link_embed: string;
+	link_m3u8: string;
+}
+
+export interface Episode {
+	server_name: string;
+	is_ai: boolean;
+	server_data: EpisodeServerData[];
+}
+
+export interface MovieImage {
+	width: number;
+	height: number;
+	aspect_ratio: number;
+	type: "backdrop" | "poster";
+	file_path: string;
+	iso_639_1?: string;
+	url: string;
+}
+
+export interface MoviePeople {
+	tmdb_people_id: number;
+	adult: boolean;
+	gender: number;
+	gender_name: string;
+	name: string;
+	original_name: string;
+	character: string;
+	known_for_department: string;
+	profile_path: string;
+	also_known_as: string[] | null;
+	profile_url: string | null;
+}
+
+export interface MovieDetail {
+	_id: string;
+	name: string;
+	slug: string;
+	origin_name: string;
+	alternative_names: string[];
+	content: string;
+	type: string;
+	status: string;
+	thumb_url: string;
+	poster_url: string;
+	is_copyright: boolean;
+	sub_docquyen: boolean;
+	chieurap: boolean;
+	is_published: boolean;
+	trailer_url: string;
+	time: string;
+	episode_current: string;
+	episode_total: number;
+	quality: string;
+	lang: string;
+	lang_key: string[];
+	notify: string;
+	showtimes: string;
+	year: number;
+	view: number;
+	actor: string[];
+	director: string[];
+	category: PhimCategory[];
+	country: PhimCountry[];
+	tmdb: PhimTmdb;
+	imdb: PhimImdb;
+	created: { time: string };
+	modified: { time: string };
+	episodes: Episode[];
+	images: MovieImage[];
+	peoples: MoviePeople[];
+}

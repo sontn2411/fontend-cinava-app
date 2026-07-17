@@ -5,6 +5,7 @@ import BannerHero from "@/components/home/bannerHero";
 import { homeService } from "@/lib/api/home.api";
 import type { ItemFlim, SectionItemFlim } from "@/types/api.types";
 import { SectionFlim } from "@/components/home/sectionFlim";
+import QuickAccess from "@/components/home/quickAccess";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -43,10 +44,14 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen w-full space-y-16">
-      <Suspense fallback={<div style={{ height: '500px' }} className="w-full bg-background-secondary animate-pulse" />}>
+    <div className="min-h-screen w-full space-y-10 md:space-y-16 ">
+      <Suspense fallback={<div style={{ height: '500px' }} className="w-full bg-background-secondary animate-pulse rounded-2xl mt-4" />}>
         <BannerHero items={items} />
       </Suspense>
+
+      <div className="px-4 lg:px-0">
+        <QuickAccess />
+      </div>
 
       {listMovie.map(item => (
         <SectionFlim key={item.id} {...item} />

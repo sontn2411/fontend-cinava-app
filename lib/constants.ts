@@ -9,7 +9,7 @@ export const ROUTES = {
   MOVIES: "/movies",
   TV_SERIES: "/tv-series",
   GENRES: "/genres",
-  SEARCH: "/search",
+  SEARCH: "/tim-kiem",
   WATCHLIST: "/watchlist",
   WATCH: "/watch",
 } as const;

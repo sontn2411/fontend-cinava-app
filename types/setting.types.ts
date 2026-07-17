@@ -23,4 +23,6 @@ export interface AppSetting {
   sort_lang: SettingOption[];
   slug_list_flim: SettingOption[];
   menus?: MenuItem[];
+  categories?: MenuItem;
+  nationals?: MenuItem;
 }

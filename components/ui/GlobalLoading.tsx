@@ -10,7 +10,7 @@ export function GlobalLoading({ fullScreen = true, className }: GlobalLoadingPro
     <div
       className={cn(
         "flex items-center justify-center bg-black",
-        fullScreen ? "min-h-screen" : "h-full w-full py-12",
+        fullScreen ? "fixed inset-0 z-[100]" : "h-full w-full py-12",
         className,
       )}
     >

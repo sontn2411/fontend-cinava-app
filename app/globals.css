@@ -96,3 +96,32 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Loading bar animation */
+@keyframes loading-bar {
+  0% {
+    width: 0;
+    opacity: 1;
+  }
+  50% {
+    width: 70%;
+    opacity: 1;
+  }
+  80% {
+    width: 90%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 2s ease-in-out infinite;
+}
