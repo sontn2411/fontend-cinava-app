@@ -26,11 +26,7 @@ export  const movieService = {
     },
     getDetailFilm : async (slug : string ) =>{
         const {data} = await apiClient.get('/api/phim/'+slug )
-
         return data.data
     }
-
-
-
 
 }

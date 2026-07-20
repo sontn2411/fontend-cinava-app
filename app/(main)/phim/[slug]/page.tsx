@@ -60,7 +60,7 @@ export default async function MovieDetailPage({
     );
   }
   const movie = data.item as MovieDetail;
-
+  console.log('===========', movie)
   // Get the highest resolution backdrop image
   const backdropImage = movie.images
     ?.filter((img: MovieImage) => img.type === "backdrop")

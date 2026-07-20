@@ -20,7 +20,6 @@ export interface AppSetting {
   years: number[];
   sort_field: SettingOption[];
   sort_type: SettingOption[];
-  sort_lang: SettingOption[];
   slug_list_flim: SettingOption[];
   menus?: MenuItem[];
   categories?: MenuItem;

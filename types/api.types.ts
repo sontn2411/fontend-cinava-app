@@ -79,7 +79,6 @@ export interface ParamsType {
 	year?: string;
 	sort_field?: string;
 	sort_type?: string;
-	sort_lang?: string;
 }
 
 export interface EpisodeServerData {

@@ -5,14 +5,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
     currentPage: number;
-    totalPages: number;
-    totalItems?: number;
+    totalItems: number;
+    totalItemsPerPage: number;
+    pageRanges?: number;
 }
 
-export function Pagination({ currentPage, totalPages, totalItems }: PaginationProps) {
+export function Pagination({ currentPage, totalItems, totalItemsPerPage, pageRanges = 5 }: PaginationProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+
+    const totalPages = Math.ceil(totalItems / (totalItemsPerPage || 1));
 
     if (totalPages <= 1) return null;
 

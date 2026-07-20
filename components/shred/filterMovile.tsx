@@ -17,7 +17,6 @@ const FilterMovie = ({ hideMovieType = false }: FilterMovieProps) => {
 
     const segments = pathname.split("/").filter(Boolean);
     const currentSlug = segments[segments.length - 1] || "";
-    const currentLang = searchParams.get("sort_lang") || "";
     const currentCategory = searchParams.get("category") || "";
     const currentCountry = searchParams.get("country") || "";
     const currentYear = searchParams.get("year") || String(getDefaultYear());
@@ -32,11 +31,6 @@ const FilterMovie = ({ hideMovieType = false }: FilterMovieProps) => {
         const qs = params.toString();
         router.push(qs ? `${pathname}?${qs}` : pathname);
     };
-
-    const langOptions = [
-        { key: "", value: "Tất cả" },
-        ...(setting?.sort_lang || []),
-    ];
 
     const categoryOptions = [
         { key: "", value: "Tất cả" },
@@ -74,12 +68,6 @@ const FilterMovie = ({ hideMovieType = false }: FilterMovieProps) => {
                 options={countryOptions}
                 value={currentCountry}
                 onChange={(value) => updateParam("country", value)}
-            />
-            <CustomSelect
-                label="Ngôn ngữ"
-                options={langOptions}
-                value={currentLang}
-                onChange={(value) => updateParam("sort_lang", value)}
             />
             <CustomSelect
                 label="Năm"

@@ -3,7 +3,7 @@ import { movieService } from "@/lib/api/movie.api";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
 import ListMovie from "@/components/shred/listMovie";
 import { Pagination } from "@/components/ui/Pagination";
-import FilterMovie from "@/components/shred/filterMovile";
+// import FilterMovie from "@/components/shred/filterMovile";
 import { getDefaultYear } from "@/lib/utils/getDefaultYear";
 
 export async function generateMetadata({
@@ -33,7 +33,6 @@ export default async function SearchPage({
     year: query.year ? String(query.year) : String(getDefaultYear()),
     ...(query.category && { category: String(query.category) }),
     ...(query.country && { country: String(query.country) }),
-    ...(query.sort_lang && { sort_lang: String(query.sort_lang) }),
   };
 
   let data = null;
@@ -63,15 +62,15 @@ export default async function SearchPage({
         </p>
       )}
 
-      <FilterMovie hideMovieType />
+      {/* <FilterMovie hideMovieType /> */}
 
       {q && data?.items ? (
         <>
           <ListMovie items={data.items} />
           <Pagination
             currentPage={data?.params?.pagination?.currentPage || apiParams.page}
-            totalPages={data?.params?.pagination?.totalPages || 1}
-            totalItems={data?.params?.pagination?.totalItems}
+            totalItems={data?.params?.pagination?.totalItems || 0}
+            totalItemsPerPage={data?.params?.pagination?.totalItemsPerPage || 24}
           />
         </>
       ) : q ? (

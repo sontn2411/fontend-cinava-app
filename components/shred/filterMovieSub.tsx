@@ -16,7 +16,6 @@ export const FilterMovieSub = ({ sub, mainSlug }: FilterMovieSubProps) => {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const currentLang = searchParams.get("sort_lang") || "";
     const currentYear = searchParams.get("year") || String(getDefaultYear());
 
     const isCategory = mainSlug === "the-loai";
@@ -32,11 +31,6 @@ export const FilterMovieSub = ({ sub, mainSlug }: FilterMovieSubProps) => {
         const qs = params.toString();
         router.push(qs ? `${pathname}?${qs}` : pathname);
     };
-
-    const langOptions = [
-        { key: "", value: "Tất cả" },
-        ...(setting?.sort_lang || []),
-    ];
 
     const categoryOptions = [
         { key: "", value: "Tất cả" },
@@ -85,12 +79,6 @@ export const FilterMovieSub = ({ sub, mainSlug }: FilterMovieSubProps) => {
                 }}
             />
 
-            <CustomSelect
-                label="Ngôn ngữ"
-                options={langOptions}
-                value={currentLang}
-                onChange={(value) => updateParam("sort_lang", value)}
-            />
             <CustomSelect
                 label="Năm"
                 options={yearOptions}

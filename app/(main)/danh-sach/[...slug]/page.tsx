@@ -65,7 +65,6 @@ export default async function DanhSachPage({
     year: query.year ? String(query.year) : String(getDefaultYear()),
     ...(query.category && { category: String(query.category) }),
     ...(query.country && { country: String(query.country) }),
-    ...(query.sort_lang && { sort_lang: String(query.sort_lang) }),
   };
   const subSlug = slug.length > 1 ? slug[1] : undefined;
   const data = await fetchData(mainSlug, subSlug, apiParams);
@@ -105,8 +104,8 @@ export default async function DanhSachPage({
 
         <Pagination
           currentPage={data?.params?.pagination?.currentPage || 1}
-          totalPages={data?.params?.pagination?.totalPages || 1}
-          totalItems={data?.params?.pagination?.totalItems}
+          totalItems={data?.params?.pagination?.totalItems || 0}
+          totalItemsPerPage={data?.params?.pagination?.totalItemsPerPage || 24}
         />
       </div>
     </div>
