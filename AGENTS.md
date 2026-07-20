@@ -33,3 +33,10 @@ MORE CLI:
   swizzle <Name>     eject component source for deep customization
   upgrade --apply    run after any @astryxdesign/core bump
 <!-- ASTRYX:END -->
+
+## Design Context (Cinava)
+- **Register:** product
+- **Platform:** web
+- **Creative North Star:** "The Dark Room" (Minimalist, utilitarian, high contrast)
+- **Key Principles:** Focus on the content, cinematic immersion (dark aesthetics), and frictionless playback.
+- **Anti-references:** Cluttered menus, overly bright colors, and slow transitions.
