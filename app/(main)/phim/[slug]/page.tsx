@@ -5,6 +5,7 @@ import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
 import { cache } from "react";
 import type { MovieDetail, MovieImage } from "@/types/api.types";
 import { MovieHero } from "@/components/movie/MovieHero";
+import { SynopsisExpand } from "@/components/movie/SynopsisExpand";
 
 const fetchDetail = cache((slug: string) => {
   return movieService.getDetailFilm(slug);
@@ -83,10 +84,15 @@ export default async function MovieDetailPage({
       </div>
 
       {/* Content */}
-      <div className="relative min-h-screen flex items-end pb-44 px-4 max-w-7xl mx-auto">
+      <div className="relative min-h-screen flex flex-col items-start mt-40  px-4 max-w-7xl mx-auto">
         <MovieHero movie={movie} />
+        <div className="mt-10 max-w-3xl p-4">
+          <SynopsisExpand html={movie.content || ''} />
+        </div>
+
       </div>
 
+    
     </div>
   );
 }

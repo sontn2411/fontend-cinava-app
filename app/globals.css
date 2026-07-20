@@ -125,3 +125,18 @@ html {
 .animate-loading-bar {
   animation: loading-bar 2s ease-in-out infinite;
 }
+
+@keyframes centerFlash {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.7);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}

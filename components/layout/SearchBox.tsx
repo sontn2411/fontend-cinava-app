@@ -92,7 +92,7 @@ export function SearchBox() {
                         {results.map((item) => (
                             <Link
                                 key={item._id}
-                                href={`/phim/${item.slug}`}
+                                href={`/xem-phim/${item.slug}`}
                                 onClick={() => setIsDismissed(true)}
                                 className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/5 group"
                             >

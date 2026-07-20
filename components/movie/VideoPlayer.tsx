@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Play, Pause, RotateCcw } from "lucide-react";
 
 interface VideoPlayerProps {
   src: string;
@@ -16,11 +17,14 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
 export function VideoPlayer({ src, poster }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hlsRef = useRef<import("hls.js").default | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -32,11 +36,17 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
   const [showControls, setShowControls] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [isTouchDevice] = useState(
+    () => typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0)
+  );
+  const [centerFlash, setCenterFlash] = useState<"play" | "pause" | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load HLS source
-  useEffect(() => {
+  const loadSource = useCallback((source: string) => {
     const video = videoRef.current;
-    if (!video || !src) return;
+    if (!video || !source) return;
 
     setError(null);
     setIsLoading(true);
@@ -44,41 +54,46 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     setCurrentTime(0);
     setDuration(0);
 
-    let hlsInstance: import("hls.js").default | null = null;
+    hlsRef.current?.destroy();
+    hlsRef.current = null;
 
-    const isHLS = src.includes(".m3u8");
+    const isHLS = source.includes(".m3u8");
 
     if (isHLS) {
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
+        video.src = source;
       } else {
         import("hls.js").then(({ default: Hls }) => {
           if (!Hls.isSupported()) {
-            setError("Trình duyệt không hỗ trợ HLS.");
+            setError("Trinh duyet khong ho tro HLS.");
             setIsLoading(false);
             return;
           }
-          hlsInstance = new Hls({ enableWorker: true });
-          hlsInstance.loadSource(src);
-          hlsInstance.attachMedia(video);
-          hlsInstance.on(Hls.Events.ERROR, (_, data) => {
+          const hls = new Hls({ enableWorker: true });
+          hlsRef.current = hls;
+          hls.loadSource(source);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.ERROR, (_, data) => {
             if (data.fatal) {
-              setError("Không thể tải video.");
+              setError("Khong the tai video.");
               setIsLoading(false);
             }
           });
         });
       }
     } else {
-      video.src = src;
+      video.src = source;
     }
+  }, []);
 
+  useEffect(() => {
+    loadSource(src);
     return () => {
-      hlsInstance?.destroy();
+      hlsRef.current?.destroy();
+      hlsRef.current = null;
     };
-  }, [src]);
+  }, [src, loadSource]);
 
-  // Video event listeners
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -94,8 +109,9 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     const onDurationChange = () => setDuration(video.duration);
     const onWaiting = () => setIsLoading(true);
     const onCanPlay = () => setIsLoading(false);
-    const onError = () => { setError("Không thể phát video."); setIsLoading(false); };
+    const onError = () => { setError("Khong the phat video."); setIsLoading(false); };
     const onVolumeChange = () => { setVolume(video.volume); setIsMuted(video.muted); };
+    const onRateChange = () => setPlaybackRate(video.playbackRate);
 
     video.addEventListener("play", onPlay);
     video.addEventListener("pause", onPause);
@@ -105,6 +121,7 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     video.addEventListener("canplay", onCanPlay);
     video.addEventListener("error", onError);
     video.addEventListener("volumechange", onVolumeChange);
+    video.addEventListener("ratechange", onRateChange);
 
     return () => {
       video.removeEventListener("play", onPlay);
@@ -115,17 +132,44 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
       video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("error", onError);
       video.removeEventListener("volumechange", onVolumeChange);
+      video.removeEventListener("ratechange", onRateChange);
     };
   }, []);
 
-  // Fullscreen change
   useEffect(() => {
     const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFsChange);
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
-  // Keyboard shortcuts
+  const togglePlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+      // flash play icon
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      setCenterFlash("play");
+      flashTimer.current = setTimeout(() => setCenterFlash(null), 600);
+    } else {
+      video.pause();
+      // flash pause icon
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      setCenterFlash("pause");
+      flashTimer.current = setTimeout(() => setCenterFlash(null), 600);
+    }
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const video = videoRef.current;
@@ -140,9 +184,8 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [duration]);
+  }, [duration, togglePlay, toggleFullscreen]);
 
-  // Auto-hide controls
   const resetHideTimer = useCallback(() => {
     setShowControls(true);
     if (hideTimer.current) clearTimeout(hideTimer.current);
@@ -151,26 +194,10 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     }, 3000);
   }, [isPlaying]);
 
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.paused ? video.play() : video.pause();
-  };
-
   const toggleMute = () => {
     const video = videoRef.current;
     if (!video) return;
     video.muted = !video.muted;
-  };
-
-  const toggleFullscreen = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (!document.fullscreenElement) {
-      el.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -190,6 +217,13 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     video.muted = v === 0;
   };
 
+  const handleSpeedChange = (speed: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = speed;
+    setShowSpeedMenu(false);
+  };
+
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferedPct = duration > 0 ? (buffered / duration) * 100 : 0;
 
@@ -200,9 +234,8 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
       className="relative w-full aspect-video bg-black group outline-none select-none"
       onMouseMove={resetHideTimer}
       onMouseLeave={() => isPlaying && setShowControls(false)}
-      onClick={togglePlay}
+      onClick={() => { togglePlay(); setShowSpeedMenu(false); }}
     >
-      {/* Video */}
       <video
         ref={videoRef}
         poster={poster}
@@ -211,101 +244,114 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
         preload="auto"
       />
 
-      {/* Spinner */}
       {isLoading && !error && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-12 h-12 rounded-full border-4 border-white/10 border-t-primary animate-spin" />
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80">
           <div className="text-center px-6">
             <p className="text-3xl mb-3">⚠️</p>
-            <p className="text-sm text-zinc-400">{error}</p>
+            <p className="text-sm text-zinc-400 mb-4">{error}</p>
+            <button
+              onClick={(e) => { e.stopPropagation(); loadSource(src); }}
+              className="flex items-center gap-2 mx-auto px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Thu lai
+            </button>
           </div>
         </div>
       )}
 
-      {/* Controls overlay */}
+      {/* Center play/pause flash */}
+      {centerFlash && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div
+            key={centerFlash}
+            className="flex items-center justify-center w-20 h-20 rounded-full bg-black/50 animate-ping-once"
+            style={{
+              animation: "centerFlash 0.6s ease-out forwards",
+            }}
+          >
+            {centerFlash === "play" ? (
+              <Play className="w-9 h-9 text-white fill-white" />
+            ) : (
+              <Pause className="w-9 h-9 text-white fill-white" />
+            )}
+          </div>
+        </div>
+      )}
+
       <div
-        className={`absolute inset-0 flex flex-col justify-end transition-opacity duration-300 pointer-events-none ${showControls ? "opacity-100" : "opacity-0"}`}
-        onClick={(e) => e.stopPropagation()}
-        style={{ pointerEvents: showControls ? "auto" : "none" }}
+        className={`absolute inset-0 flex flex-col justify-end transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       >
-        {/* Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
-        {/* Bottom bar */}
-        <div className="relative px-4 pb-3 pt-6">
-          {/* Progress bar */}
+        <div className="relative px-4 pb-3 pt-6" onClick={(e) => e.stopPropagation()}>
           <div
             ref={progressRef}
             className="relative h-1 rounded-full bg-white/20 cursor-pointer mb-3 group/bar hover:h-1.5 transition-all"
+            style={{ touchAction: "none" }}
             onClick={handleSeek}
           >
-            {/* Buffered */}
-            <div
-              className="absolute h-full rounded-full bg-white/30"
-              style={{ width: `${bufferedPct}%` }}
-            />
-            {/* Played */}
-            <div
-              className="absolute h-full rounded-full bg-primary"
-              style={{ width: `${progress}%` }}
-            />
-            {/* Thumb */}
+            <div className="absolute -inset-y-3 inset-x-0" />
+            <div className="absolute h-full rounded-full bg-white/30" style={{ width: `${bufferedPct}%` }} />
+            <div className="absolute h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
             <div
               className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary opacity-0 group-hover/bar:opacity-100 transition-opacity"
               style={{ left: `calc(${progress}% - 6px)` }}
             />
           </div>
 
-          {/* Buttons row */}
           <div className="flex items-center gap-3">
-            {/* Play / Pause */}
             <button
               className="text-white hover:text-primary transition-colors cursor-pointer"
               onClick={togglePlay}
+              title={isPlaying ? "Dung (Space)" : "Phat (Space)"}
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <rect x="6" y="4" width="4" height="16" rx="1" />
-                  <rect x="14" y="4" width="4" height="16" rx="1" />
-                </svg>
+                <Pause className="w-6 h-6 fill-current" />
               ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5.14v14l11-7-11-7z" />
-                </svg>
+                <Play className="w-6 h-6 fill-current" />
               )}
             </button>
 
-            {/* Skip -10 */}
             <button
-              className="text-white/70 hover:text-white transition-colors cursor-pointer text-xs font-bold"
+              className="text-white/70 hover:text-white transition-colors cursor-pointer"
               onClick={() => { if (videoRef.current) videoRef.current.currentTime -= 10; }}
-              aria-label="Tua lùi 10 giây"
+              title="Tua lui 10 giay"
+              aria-label="Tua lui 10 giay"
             >
-              ⟪10
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.5 3a9 9 0 1 0 7.43 3.93L18 8.8A7 7 0 1 1 12.5 5V3z" />
+                <path d="M12.5 3 9 6.5l3.5 3.5V3z" />
+                <text x="8.5" y="15.5" fontSize="5.5" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">10</text>
+              </svg>
             </button>
 
-            {/* Skip +10 */}
             <button
-              className="text-white/70 hover:text-white transition-colors cursor-pointer text-xs font-bold"
+              className="text-white/70 hover:text-white transition-colors cursor-pointer"
               onClick={() => { if (videoRef.current) videoRef.current.currentTime += 10; }}
-              aria-label="Tua tới 10 giây"
+              title="Tua toi 10 giay"
+              aria-label="Tua toi 10 giay"
             >
-              10⟫
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.5 3a9 9 0 1 1-7.43 3.93L6 8.8A7 7 0 1 0 11.5 5V3z" />
+                <path d="M11.5 3 15 6.5 11.5 10V3z" />
+                <text x="15.5" y="15.5" fontSize="5.5" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">10</text>
+              </svg>
             </button>
 
-            {/* Volume */}
-            <div className="flex items-center gap-1.5 group/vol">
+            <div className="flex items-center gap-1.5">
               <button
-                className="text-white/70 hover:text-white transition-colors cursor-pointer"
+                className="text-white/70 hover:text-white transition-colors cursor-pointer shrink-0"
                 onClick={toggleMute}
-                aria-label={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+                title={isMuted ? "Bat am (M)" : "Tat am (M)"}
+                aria-label={isMuted ? "Bat am thanh" : "Tat am thanh"}
               >
                 {isMuted || volume === 0 ? (
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -326,25 +372,54 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
                 min={0} max={1} step={0.05}
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-0 group-hover/vol:w-20 transition-all duration-200 accent-primary cursor-pointer h-1"
-                style={{ accentColor: 'var(--color-primary)' }}
-                aria-label="Âm lượng"
+                className={`h-1 cursor-pointer transition-all duration-200 ${isTouchDevice ? "w-16" : "w-0 group-hover:w-20"}`}
+                style={{ accentColor: "var(--color-primary)" }}
+                aria-label="Am luong"
               />
             </div>
 
-            {/* Time */}
             <span className="text-xs text-white/70 tabular-nums ml-1">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
 
-            {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Fullscreen */}
+            <div className="relative">
+              <button
+                className="text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer w-9 text-center"
+                onClick={(e) => { e.stopPropagation(); setShowSpeedMenu((v) => !v); }}
+                title="Toc do phat"
+                aria-label="Toc do phat"
+              >
+                {playbackRate === 1 ? "1x" : `${playbackRate}x`}
+              </button>
+              {showSpeedMenu && (
+                <div
+                  className="absolute bottom-8 right-0 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl z-10 min-w-[80px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {SPEEDS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleSpeedChange(s)}
+                      className={`block w-full px-4 py-2 text-xs text-left transition-colors cursor-pointer ${
+                        s === playbackRate
+                          ? "bg-primary text-white"
+                          : "text-zinc-300 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {s === 1 ? "1x (Mac dinh)" : `${s}x`}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               className="text-white/70 hover:text-white transition-colors cursor-pointer"
               onClick={toggleFullscreen}
-              aria-label={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+              title={isFullscreen ? "Thoat toan man hinh (F)" : "Toan man hinh (F)"}
+              aria-label={isFullscreen ? "Thoat toan man hinh" : "Toan man hinh"}
             >
               {isFullscreen ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

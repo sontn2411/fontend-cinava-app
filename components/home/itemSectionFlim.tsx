@@ -11,7 +11,7 @@ export const ItemSectionFlim = ({ item }: ItemSectionFlimProps) => {
 
     return (
         <Link 
-            href={`/phim/${item.slug}`} 
+            href={`/xem-phim/${item.slug}`} 
             className="relative flex-[0_0_140px] sm:flex-[0_0_160px] md:flex-[0_0_200px] lg:flex-[0_0_240px] flex flex-col group cursor-pointer"
         >
             {/* Image Container (Aspect ratio 4:5) */}
